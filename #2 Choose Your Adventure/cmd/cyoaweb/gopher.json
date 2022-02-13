@@ -14,6 +14,10 @@
       {
         "text": "Gee, those bandits sound pretty real to me. Let's play it safe and try our luck in Denver.",
         "arc": "denver"
+      },
+      {
+        "text": "I would like to have an adventure in a very ancient place, where I can go through the jungle for searching treasures.",
+        "arc": "aztec-template"
       }
     ]
   },
@@ -106,6 +110,16 @@
     "title": "Home Sweet Home",
     "story": [
       "Your little gopher buddy thanks you for taking him on an adventure. Perhaps next year you can look into travelling abroad - you have both heard that gophers are all the rage in China."
+    ],
+    "options": []
+  },
+  "aztec-template": {
+    "title": "Aztec Template",
+    "story": [
+      "You arrive to the rainforests of Brazil, one of the least habited place in the world.",
+      "With an ancient map bought only for 200$ from the local descendant of the Aztecs, you go for a two weeks journey",
+      "Finally you arrived to the place of the treasure! It occurs that the treasure was famous amusement park which is known for selling fake treasure maps.",
+      "Very disappointed you travel back to your home, at least you are sunburnt!"
     ],
     "options": []
   }

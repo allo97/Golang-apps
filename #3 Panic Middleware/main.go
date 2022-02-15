@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,11 +9,15 @@ import (
 )
 
 func main() {
+	port := flag.Int("port", 3200, "the port to start the http server")
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/panic/", panicDemo)
 	mux.HandleFunc("/panic-after/", panicAfterDemo)
+	mux.HandleFunc("/add", add)
 	mux.HandleFunc("/", hello)
-	log.Fatal(http.ListenAndServe(":3000", recoverMw(mux, true)))
+	log.Printf("Starting the server on port: %d\n", *port)
+	log.Fatal(http.ListenAndServe(":3200", recoverMw(mux, true)))
 }
 
 func recoverMw(app http.Handler, dev bool) http.HandlerFunc {
@@ -69,6 +74,22 @@ func (rw *responseWriter) flush() error {
 		}
 	}
 	return nil
+}
+
+func add(w http.ResponseWriter, r *http.Request) {
+	keys, ok := r.URL.Query()["key"]
+
+	if !ok || len(keys[0]) < 1 {
+        log.Println("Url Param 'key' is missing")
+        return
+    }
+
+    // Query()["key"] will return an array of items, 
+    // we only want the single item.
+    key := keys[0]
+	// log.Println("keys" + string(keys))
+    log.Println("Url Param 'key' is: " + string(key))
+	fmt.Fprint(w, "<h1>Calculate sum</h1>")
 }
 
 func panicDemo(w http.ResponseWriter, r *http.Request) {

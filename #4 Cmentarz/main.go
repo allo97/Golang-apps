@@ -7,6 +7,7 @@ import (
 
 func main() {
 	var magazyn = generateMagazyn()
+	fmt.Println(magazyn)
 
 	babka1 := babka{nazwa: "babka1", typ: "wiazanka"}
 	babka2 := babka{nazwa: "babka2", typ: "wiazanka"}
@@ -18,29 +19,28 @@ func main() {
 	fmt.Println(babka3)
 	fmt.Println(babka4)
 
-	var kosz_na_znicze []string
-	var kosz_na_wiazanki []string
-
-	fmt.Println(magazyn)
-
+	var kosz_na_znicze [10]string
+	var kosz_na_wiazanki [10]string
 	fmt.Println(kosz_na_znicze)
 	fmt.Println(kosz_na_wiazanki)
+
+	poslancy := []string{"poslaniec1", "poslaniec2", "poslaniec3", "poslaniec4", "poslaniec5"}
+	fmt.Println((poslancy))
 }
 
 func generateMagazyn() magazyn {
 	fmt.Println("Tworzę magazyn")
 
-	magazyn := magazyn{make([]string, 100), make([]string, 50)}
+	magazyn:= magazyn {}
 
-	fmt.Println(magazyn)
-
-	for i := 0; i < 50; i++ {
+	for i := range magazyn.wiazanki {
 		magazyn.wiazanki[i] = "wiazanka" + strconv.Itoa(i+1)
 	}
 
-	for i := 0; i < 100; i++ {
+	for i := range magazyn.znicze {
 		magazyn.znicze[i] = "znicz" + strconv.Itoa(i+1)
 	}
+
 	return magazyn
 }
 
@@ -49,15 +49,15 @@ func pobierzProduktZMagazynu(magazyn magazyn, babka babka, kosz []string) {
 
 	var produkt string
 
-	if babka.typ == "wiazanka" {
-		produkt = magazyn.wiazanki[len(magazyn.wiazanki)-1]
-		magazyn.wiazanki = magazyn.wiazanki[:len(magazyn.wiazanki)-1]
-	}
+	// if babka.typ == "wiazanka" {
+	// 	produkt = magazyn.wiazanki[len(magazyn.wiazanki)-1]
+	// 	magazyn.wiazanki = magazyn.wiazanki[:len(magazyn.wiazanki)-1]
+	// }
 
-	if babka.typ == "znicz" {
-		produkt = magazyn.znicze[len(magazyn.znicze)-1]
-		magazyn.znicze = magazyn.znicze[:len(magazyn.znicze)-1]
-	}
+	// if babka.typ == "znicz" {
+	// 	produkt = magazyn.znicze[len(magazyn.znicze)-1]
+	// 	magazyn.znicze = magazyn.znicze[:len(magazyn.znicze)-1]
+	// }
 
 	fmt.Println("Pobrany produkt: ", produkt)
 
@@ -72,7 +72,7 @@ func pobierzProduktZMagazynu(magazyn magazyn, babka babka, kosz []string) {
 
 }
 
-func pobierzProduktyZKosza(kosz_na_wiazanki []string, kosz_na_znicze []string, poslaniec poslaniec) {
+func pobierzProduktyZKosza(kosz_na_wiazanki []string, kosz_na_znicze []string, poslancy []string) {
 	fmt.Println("Poslaniec pobiera produkty")
 
 	if len(kosz_na_wiazanki) > 0 {
@@ -101,15 +101,11 @@ func pobierzProduktyZKosza(kosz_na_wiazanki []string, kosz_na_znicze []string, p
 }
 
 type magazyn struct {
-	znicze   []string
-	wiazanki []string
+	znicze   [100]string
+	wiazanki [50]string
 }
 
 type babka struct {
 	nazwa string
 	typ   string
-}
-
-type poslaniec struct {
-	nazwa string
 }

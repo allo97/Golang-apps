@@ -30,7 +30,9 @@ func main() {
 func generateMagazyn() magazyn {
 	fmt.Println("Tworzę magazyn")
 
-	var magazyn magazyn
+	magazyn := magazyn{make([]string, 100), make([]string, 50)}
+
+	fmt.Println(magazyn)
 
 	for i := 0; i < 50; i++ {
 		magazyn.wiazanki[i] = "wiazanka" + strconv.Itoa(i+1)

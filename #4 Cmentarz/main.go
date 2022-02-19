@@ -3,109 +3,104 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"sync"
+	"time"
 )
 
 func main() {
-	var magazyn = generateMagazyn()
-	fmt.Println(magazyn)
+	// Magazyn musi być stworzony zanim się zacznie pobieranie produktów
+	var magazyn = generateMagazyn(50, 100)
 
-	babka1 := babka{nazwa: "babka1", typ: "wiazanka"}
-	babka2 := babka{nazwa: "babka2", typ: "wiazanka"}
-	babka3 := babka{nazwa: "babka3", typ: "znicz"}
-	babka4 := babka{nazwa: "babka4", typ: "znicz"}
+	babka1 := babka{"babka1", "znicze"}
+	babka2 := babka{"babka2", "znicze"}
+	babka3 := babka{"babka3", "wiazanki"}
+	babka4 := babka{"babka4", "wiazanki"}
 
-	fmt.Println(babka1)
-	fmt.Println(babka2)
-	fmt.Println(babka3)
-	fmt.Println(babka4)
+	koszNaZnicze := make(chan string, 10)
+	koszNaWiazanki := make(chan string, 10)
 
-	var kosz_na_znicze [10]string
-	var kosz_na_wiazanki [10]string
-	fmt.Println(kosz_na_znicze)
-	fmt.Println(kosz_na_wiazanki)
+	poslancy := []poslaniec{{"poslaniec1"}, {"poslaniec2"}, {"poslaniec3"}, {"poslaniec4"}, {"poslaniec5"}}
 
-	poslancy := []string{"poslaniec1", "poslaniec2", "poslaniec3", "poslaniec4", "poslaniec5"}
-	fmt.Println((poslancy))
+	var wg sync.WaitGroup
+
+	fmt.Println("Uruchamiam babki")
+
+	wg.Add(1)
+	go func() {
+		for len(magazyn.znicze) != 0 && len(magazyn.wiazanki) != 0 {
+			wg.Add(4)
+			go babka1.pobierzProduktZMagazynu(magazyn.znicze, koszNaZnicze, &wg)
+			go babka2.pobierzProduktZMagazynu(magazyn.znicze, koszNaZnicze, &wg)
+			go babka3.pobierzProduktZMagazynu(magazyn.wiazanki, koszNaWiazanki, &wg)
+			go babka4.pobierzProduktZMagazynu(magazyn.wiazanki, koszNaWiazanki, &wg)
+			time.Sleep(time.Second / 100)
+		}
+		defer wg.Done()
+	}()
+
+	fmt.Println("Uruchamiam poslancow")
+
+	for len(magazyn.znicze) != 0 && len(magazyn.wiazanki) != 0 {
+		for _, poslaniec := range poslancy {
+			wg.Add(1)
+			go poslaniec.pobierzProduktyZKosza(koszNaZnicze, koszNaWiazanki, &wg)
+		}
+		time.Sleep(time.Second / 100)
+	}
+
+	wg.Wait()
 }
 
-func generateMagazyn() magazyn {
-	fmt.Println("Tworzę magazyn")
+func generateMagazyn(iloscWiazanek int, iloscZniczy int) magazyn {
+	magazyn := magazyn{znicze: make(chan string, iloscZniczy), wiazanki: make(chan string, iloscWiazanek)}
 
-	magazyn:= magazyn {}
-
-	for i := range magazyn.wiazanki {
-		magazyn.wiazanki[i] = "wiazanka" + strconv.Itoa(i+1)
+	for i := 0; i < iloscWiazanek; i++ {
+		magazyn.wiazanki <- "wiazanka" + strconv.Itoa(i+1)
 	}
 
-	for i := range magazyn.znicze {
-		magazyn.znicze[i] = "znicz" + strconv.Itoa(i+1)
+	for i := 0; i < iloscZniczy; i++ {
+		magazyn.znicze <- "znicz" + strconv.Itoa(i+1)
 	}
 
+	fmt.Println("Magazyn został stworzony")
 	return magazyn
 }
 
-func pobierzProduktZMagazynu(magazyn magazyn, babka babka, kosz []string) {
-	fmt.Println("Babka pobiera produkt")
-
-	var produkt string
-
-	// if babka.typ == "wiazanka" {
-	// 	produkt = magazyn.wiazanki[len(magazyn.wiazanki)-1]
-	// 	magazyn.wiazanki = magazyn.wiazanki[:len(magazyn.wiazanki)-1]
-	// }
-
-	// if babka.typ == "znicz" {
-	// 	produkt = magazyn.znicze[len(magazyn.znicze)-1]
-	// 	magazyn.znicze = magazyn.znicze[:len(magazyn.znicze)-1]
-	// }
-
-	fmt.Println("Pobrany produkt: ", produkt)
-
-	fmt.Println("Dodaję produkt do kosza:")
+func (babka babka) pobierzProduktZMagazynu(magazyn chan string, kosz chan string, wg *sync.WaitGroup) {
 
 	if len(kosz) >= 10 {
-		fmt.Println("Kosz już jest zapełniony! Musisz poczekać aż posłaniec odbierze produkt!")
+		fmt.Printf("Pełny kosz! %s musi poczekać aż posłaniec odbierze produkt!\n", babka.nazwa)
 	} else {
-		kosz = append(kosz, produkt)
-		fmt.Println("Produkt został dodany do kosza")
+		produkt := <-magazyn
+		kosz <- produkt
+		fmt.Printf("%s pobiera %s i dodaje %s do kosza\n", babka.nazwa, babka.typ, produkt)
 	}
-
+	defer wg.Done()
 }
 
-func pobierzProduktyZKosza(kosz_na_wiazanki []string, kosz_na_znicze []string, poslancy []string) {
-	fmt.Println("Poslaniec pobiera produkty")
+func (poslaniec poslaniec) pobierzProduktyZKosza(kosz_na_znicze chan string, kosz_na_wiazanki chan string, wg *sync.WaitGroup) {
+	if len(kosz_na_znicze) > 1 && len(kosz_na_wiazanki) > 0 {
+		znicz1 := <-kosz_na_znicze
+		znicz2 := <-kosz_na_znicze
+		wiazanka := <-kosz_na_wiazanki
 
-	if len(kosz_na_wiazanki) > 0 {
-		var wiazanka = kosz_na_wiazanki[len(kosz_na_wiazanki)-1]
-		fmt.Println("Pobrano 1 wiazanke")
-		fmt.Println(wiazanka)
-
-		kosz_na_wiazanki = kosz_na_wiazanki[:len(kosz_na_wiazanki)-1]
+		fmt.Printf("%s pobiera %s i %s i %s\n", poslaniec.nazwa, znicz1, znicz2, wiazanka)
 	} else {
-		fmt.Println("Nie ma wiazanki do pobrania")
+		fmt.Printf("Pusty kosz! %s musi poczekać!\n", poslaniec.nazwa)
 	}
-
-	if len(kosz_na_znicze) > 1 {
-		var znicz1 = kosz_na_znicze[len(kosz_na_znicze)-1]
-		var znicz2 = kosz_na_znicze[len(kosz_na_znicze)-2]
-
-		fmt.Println("Pobrano 2 znicze")
-		fmt.Println(znicz1)
-		fmt.Println(znicz2)
-
-		kosz_na_znicze = kosz_na_znicze[:len(kosz_na_znicze)-2]
-	} else {
-		fmt.Println("Nie ma zniczy do pobrania")
-	}
-
+	defer wg.Done()
 }
 
 type magazyn struct {
-	znicze   [100]string
-	wiazanki [50]string
+	znicze   chan string
+	wiazanki chan string
 }
 
 type babka struct {
 	nazwa string
 	typ   string
+}
+
+type poslaniec struct {
+	nazwa string
 }

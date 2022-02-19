@@ -39,6 +39,7 @@ func main() {
 	}
 
 	wg.Wait()
+	fmt.Println("Pobrano wszystkie znicze i wiązanki!")
 }
 
 func generateMagazyn(iloscWiazanek int, iloscZniczy int) magazyn {
@@ -65,14 +66,14 @@ func (babka babka) pobierzProduktZMagazynu(magazyn chan string, kosz chan string
 			kosz <- produkt
 			fmt.Printf("%s pobiera %s i dodaje %s do kosza\n", babka.nazwa, babka.typ, produkt)
 		}
-		time.Sleep(time.Second)
+		time.Sleep(time.Second / 10)
 
 	}
 	defer wg.Done()
 }
 
 func (poslaniec poslaniec) pobierzProduktyZKosza(kosz_na_znicze chan string, kosz_na_wiazanki chan string, magazyn magazyn, wg *sync.WaitGroup) {
-	for len(magazyn.znicze) != 0 || len(magazyn.wiazanki) != 0 {
+	for len(magazyn.znicze) != 0 || len(magazyn.wiazanki) != 0 || len(kosz_na_znicze) != 0 || len(kosz_na_wiazanki) != 0 {
 		if len(kosz_na_znicze) > 1 && len(kosz_na_wiazanki) > 0 {
 			znicz1 := <-kosz_na_znicze
 			znicz2 := <-kosz_na_znicze
@@ -83,9 +84,9 @@ func (poslaniec poslaniec) pobierzProduktyZKosza(kosz_na_znicze chan string, kos
 			fmt.Printf("Pusty kosz! %s musi poczekać!\n", poslaniec.nazwa)
 		}
 
-		time.Sleep(time.Second)
-
+		time.Sleep(time.Second / 10)
 	}
+
 	defer wg.Done()
 }
 

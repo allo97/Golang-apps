@@ -23,15 +23,11 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	fmt.Println("Uruchamiam babki")
-
 	wg.Add(4)
 	go babka1.pobierzProduktZMagazynu(magazyn.znicze, koszNaZnicze, &wg)
 	go babka2.pobierzProduktZMagazynu(magazyn.znicze, koszNaZnicze, &wg)
 	go babka3.pobierzProduktZMagazynu(magazyn.wiazanki, koszNaWiazanki, &wg)
 	go babka4.pobierzProduktZMagazynu(magazyn.wiazanki, koszNaWiazanki, &wg)
-
-	fmt.Println("Uruchamiam poslancow")
 
 	for _, poslaniec := range poslancy {
 		wg.Add(1)
@@ -67,7 +63,6 @@ func (babka babka) pobierzProduktZMagazynu(magazyn chan string, kosz chan string
 			fmt.Printf("%s pobiera %s i dodaje %s do kosza\n", babka.nazwa, babka.typ, produkt)
 		}
 		time.Sleep(time.Second / 10)
-
 	}
 	defer wg.Done()
 }
@@ -83,10 +78,8 @@ func (poslaniec poslaniec) pobierzProduktyZKosza(kosz_na_znicze chan string, kos
 		} else {
 			fmt.Printf("Pusty kosz! %s musi poczekać!\n", poslaniec.nazwa)
 		}
-
 		time.Sleep(time.Second / 10)
 	}
-
 	defer wg.Done()
 }
 
